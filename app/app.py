@@ -99,7 +99,7 @@ def load_sample_data() -> Tuple[np.ndarray, np.ndarray]:
     Returns:
         特征数据和标签数据
     """
-    # 使用iris数据集作为示例
+    # 使用鸢尾花数据集作为示例
     iris = load_iris()
     return iris.data, iris.target
 
@@ -206,9 +206,9 @@ def main():
                     "pip",
                     {
                         "pip": [
-                            "scikit-learn==1.3.0",
-                            "numpy==1.24.3",
-                            "mlflow==3.5.1"
+                            "scikit-learn",
+                            "numpy",
+                            "mlflow"
                         ]
                     }
                 ]
@@ -235,12 +235,8 @@ def main():
         mlflow.log_metric("test_samples", X_test.shape[0])
         mlflow.log_metric("n_features", X_train.shape[1])
 
-
 if __name__ == "__main__":
-    # 设置MLflow跟踪URI（如果环境变量中指定了DagsHub URI则使用它）
-    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "mlruns"))
-    
-    # 禁用环境变量记录警告
-    os.environ["MLFLOW_RECORD_ENV_VARS_IN_MODEL_LOGGING"] = "false"
+    # 设置MLflow服务器地址
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
     
     main()

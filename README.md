@@ -98,7 +98,7 @@ docker build -t knn-ml-app .
 
 ### 2. **运行容器**
 ```bash
-docker run --rm knn-ml-app
+run --name knn-app knn-ml-app
 ```
 
 ## 🧪 测试
