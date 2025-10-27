@@ -90,12 +90,12 @@ knn-ml-app
 
 ### 1. **构建镜像**
 ```bash
-docker build -t knn-ml-app .
+docker build --no-cache -t knn-ml-app .
 ```
 
 ### 2. **运行容器**
 ```bash
-run --name knn-app knn-ml-app
+docker run --name knn-app knn-ml-app
 ```
 
 ## 🧪 测试

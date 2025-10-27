@@ -246,6 +246,29 @@ if __name__ == "__main__":
         mlflow.set_tracking_uri(tracking_uri)
         print("MLFLOW_TRACKING_URI未设置，使用本地mlruns目录记录")
 
+    # 确保实验存在
+    experiment_name = "KNN_Experiment"
+    try:
+        # 尝试获取实验
+        experiment = mlflow.get_experiment_by_name(experiment_name)
+        if experiment is None:
+            # 如果实验不存在，则创建它
+            experiment_id = mlflow.create_experiment(experiment_name)
+        else:
+            experiment_id = experiment.experiment_id
+    except Exception as e:
+        print(f"创建实验时出错: {e}")
+        # 如果获取或创建实验失败，使用默认实验并确保其存在
+        try:
+            experiment = mlflow.get_experiment("0")
+        except Exception:
+            # 如果默认实验不存在，创建它
+            experiment_id = mlflow.create_experiment("Default")
+        else:
+            experiment_id = "0"
+    
+    mlflow.set_experiment(experiment_id=experiment_id)
+
     # 禁用环境变量记录警告
     os.environ["MLFLOW_RECORD_ENV_VARS_IN_MODEL_LOGGING"] = "false"
 
