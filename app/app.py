@@ -2,7 +2,6 @@ import os
 from typing import Tuple
 
 import joblib
-import mlflow
 import numpy as np
 from dotenv import load_dotenv
 from sklearn.datasets import load_iris, make_classification
@@ -141,102 +140,63 @@ def main():
     test_size = float(os.getenv("TEST_SIZE", "0.2"))
     use_synthetic = os.getenv("USE_SYNTHETIC_DATA", "false").lower() == "true"
 
-    # 启动MLflow运行
-    with mlflow.start_run() as run:
-        # 记录参数
-        mlflow.log_param("n_neighbors", n_neighbors)
-        mlflow.log_param("test_size", test_size)
-        mlflow.log_param("use_synthetic", use_synthetic)
+    print("配置参数:")
+    print(f"- 邻居数量: {n_neighbors}")
+    print(f"- 测试集比例: {test_size}")
+    print(f"- 使用合成数据: {use_synthetic}")
 
-        print("配置参数:")
-        print(f"- 邻居数量: {n_neighbors}")
-        print(f"- 测试集比例: {test_size}")
-        print(f"- 使用合成数据: {use_synthetic}")
+    # 加载数据
+    if use_synthetic:
+        print("\n使用合成数据集...")
+        X, y = create_synthetic_data()
+    else:
+        print("\n使用Iris数据集...")
+        X, y = load_sample_data()
 
-        # 加载数据
-        if use_synthetic:
-            print("\n使用合成数据集...")
-            X, y = create_synthetic_data()
-        else:
-            print("\n使用Iris数据集...")
-            X, y = load_sample_data()
+    print(f"数据集形状: {X.shape}")
+    print(f"类别数量: {len(np.unique(y))}")
 
-        print(f"数据集形状: {X.shape}")
-        print(f"类别数量: {len(np.unique(y))}")
+    # 分割数据
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=42, stratify=y
+    )
 
-        # 分割数据
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=42, stratify=y
-        )
+    print(f"训练集大小: {X_train.shape[0]}")
+    print(f"测试集大小: {X_test.shape[0]}")
 
-        print(f"训练集大小: {X_train.shape[0]}")
-        print(f"测试集大小: {X_test.shape[0]}")
+    # 创建和训练模型
+    model = KNNModel(n_neighbors=n_neighbors)
+    model.train(X_train, y_train)
 
-        # 创建和训练模型
-        model = KNNModel(n_neighbors=n_neighbors)
-        model.train(X_train, y_train)
+    # 进行预测
+    y_pred = model.predict(X_test)
 
-        # 进行预测
-        y_pred = model.predict(X_test)
+    # 计算准确率
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"\n模型准确率: {accuracy:.4f}")
 
-        # 计算准确率
-        accuracy = accuracy_score(y_test, y_pred)
-        print(f"\n模型准确率: {accuracy:.4f}")
+    # 显示详细分类报告
+    print("\n分类报告:")
+    print(classification_report(y_test, y_pred))
 
-        # 记录指标
-        mlflow.log_metric("accuracy", accuracy)
+    # 准备输入示例和模型签名
+    input_example = X_train[:5]  # 使用前5个训练样本作为输入示例
+    
+    # 保存模型到本地
+    model_path = os.getenv("MODEL_PATH", "model.pkl")
+    model.save_model(model_path)
 
-        # 显示详细分类报告
-        print("\n分类报告:")
-        print(classification_report(y_test, y_pred))
+    # 示例预测
+    print("\n示例预测:")
+    sample_idx = 0
+    sample_features = X_test[sample_idx : sample_idx + 1]
+    sample_pred = model.predict(sample_features)[0]
+    sample_proba = model.predict_proba(sample_features)[0]
 
-        # 准备输入示例和模型签名
-        input_example = X_train[:5]  # 使用前5个训练样本作为输入示例
-        
-        # 记录模型到MLflow，包含输入示例以自动生成签名
-        mlflow.sklearn.log_model(
-            sk_model=model.model,
-            artifact_path="model",
-            input_example=input_example,
-            conda_env={
-                "name": "knn-env",
-                "channels": ["conda-forge", "defaults"],
-                "dependencies": [
-                    "python=3.11",
-                    "pip",
-                    {
-                        "pip": [
-                            "scikit-learn",
-                            "numpy",
-                            "mlflow"
-                        ]
-                    }
-                ]
-            }
-        )
-
-        # 保存模型到本地
-        model_path = os.getenv("MODEL_PATH", "model.pkl")
-        model.save_model(model_path)
-
-        # 示例预测
-        print("\n示例预测:")
-        sample_idx = 0
-        sample_features = X_test[sample_idx : sample_idx + 1]
-        sample_pred = model.predict(sample_features)[0]
-        sample_proba = model.predict_proba(sample_features)[0]
-
-        print(f"样本特征: {sample_features[0]}")
-        print(f"预测类别: {sample_pred}")
-        print(f"预测概率: {sample_proba}")
-
-        # 记录一些额外的指标
-        mlflow.log_metric("train_samples", X_train.shape[0])
-        mlflow.log_metric("test_samples", X_test.shape[0])
-        mlflow.log_metric("n_features", X_train.shape[1])
+    print(f"样本特征: {sample_features[0]}")
+    print(f"预测类别: {sample_pred}")
+    print(f"预测概率: {sample_proba}")
 
 if __name__ == "__main__":
-    # 设置MLflow服务器地址
-    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"))
     
     main()
