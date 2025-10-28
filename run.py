@@ -21,12 +21,9 @@ if __name__ == "__main__":
     # 导入并运行主应用
     try:
         from app import main
-
+        print("启动应用...")
         main()
     except ImportError as e:
         print(f"导入错误: {e}")
         print("请确保已安装所有依赖: pip install -r requirements.txt")
-        sys.exit(1)
-    except Exception as e:
-        print(f"运行错误: {e}")
         sys.exit(1)

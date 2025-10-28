@@ -45,9 +45,6 @@ github-workflow-exercize/
 | `TEST_SIZE` | 0.2 | 测试集比例 |
 | `USE_SYNTHETIC_DATA` | false | 是否使用合成数据 |
 | `MODEL_PATH` | model.pkl | 模型保存路径 |
-| `DEBUG` | false | 调试模式 |
-| `LOGLEVEL` | INFO | 日志级别 |
-| `MLFLOW_TRACKING_URI` | mlruns | MLflow跟踪URI |
 
 ## 🚀 快速开始
 
@@ -93,12 +90,12 @@ knn-ml-app
 
 ### 1. **构建镜像**
 ```bash
-docker build -t knn-ml-app .
+docker build --no-cache -t knn-ml-app .
 ```
 
 ### 2. **运行容器**
 ```bash
-docker run --rm knn-ml-app
+docker run --name knn-app knn-ml-app
 ```
 
 ## 🧪 测试
@@ -183,15 +180,6 @@ GitHub Actions自动化流水线包括:
 
 ### 1. CI/CD Pipeline (`.github/workflows/ci.yml`)
 - **代码检查**: Black、isort、Flake8、MyPy
-- **测试运行**: Python 3.8-3.11
+- **测试运行**: Python 3.11
 - **Docker构建**: 构建和测试Docker镜像
 - **安全检查**: Safety、Bandit
-
-### 2. 安全检查流水线 (`.github/workflows/security.yml`)
-- **依赖安全检查**: 使用Safety进行依赖安全检查
-- **代码安全检查**: Bandit和Semgrep代码安全检查
-- **SAFETY SARIF报告**: 安全检查的SARIF格式报告
-
-## 🤝 贡献
-
-欢迎提交Issue和Pull Request来改进这个项目。
